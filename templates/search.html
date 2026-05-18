@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Поиск через стороннее API{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-9">
+        <div class="card shadow-sm border-0 p-4 mb-4">
+            <h3 class="fw-bold mb-2">Умный поиск</h3>
+            <p class="text-muted">Введите часть названия на английском. Система покажет до 5 совпадений из глобальной базы OMDb.</p>
+            
+            <form method="GET" action="{{ url_for('search_api_page') }}" class="row g-2">
+                <div class="col-sm-9">
+                    <input type="text" name="query" class="form-control form-control-lg" placeholder="Например: Batman, Star Wars, Harry Potter..." value="{{ query }}" required autocomplete="off">
+                </div>
+                <div class="col-sm-3">
+                    <button type="submit" class="btn btn-dark btn-lg w-100">Искать в API</button>
+                </div>
+            </form>
+        </div>
+
+        {% if search_results %}
+            <h4 class="fw-bold mb-3 text-secondary">Результаты поиска во внешней системе:</h4>
+            
+            <div class="d-flex flex-column gap-3">
+                {% for movie in search_results %}
+                    <div class="card shadow-sm border-0 overflow-hidden search-item">
+                        <div class="row g-0 align-items-center">
+                            <div class="col-sm-2 text-center bg-light">
+                                {% if movie.Poster and movie.Poster != 'N/A' %}
+                                    <img src="{{ movie.Poster }}" alt="Постер" class="img-fluid" style="height: 120px; width: 100%; object-fit: cover;">
+                                {% else %}
+                                    <div class="py-4 text-muted small">Нет фото</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-sm-7 p-3">
+                                <h5 class="fw-bold mb-1 text-dark">{{ movie.Title }}</h5>
+                                <p class="mb-0 text-muted">Год выпуска: <span class="badge bg-secondary">{{ movie.Year }}</span></p>
+                                <small class="text-secondary">Идентификатор базы данных: {{ movie.imdbID }}</small>
+                            </div>
+                            <div class="col-sm-3 p-3 text-sm-end">
+                                <form method="POST" action="{{ url_for('add_movie_from_api') }}">
+                                    <input type="hidden" name="imdb_id" value="{{ movie.imdbID }}">
+                                    <button type="submit" class="btn btn-success btn-sm w-100 py-2">📥 Импортировать</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% elif query %}
+            <div class="alert alert-warning text-center shadow-sm" role="alert">
+                <h5>Ничего не найдено через стороннее API!</h5>
+                <p class="mb-0">Попробуйте изменить запрос (используйте английский язык).</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
